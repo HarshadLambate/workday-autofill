@@ -24,7 +24,30 @@ def _load_profile(folder: Path) -> tuple[dict, Path] | None:
     if not path.exists():
         print(f"{path} not found. Run `wdautofill init --dir {folder}` first.", file=sys.stderr)
         return None
-    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}, path
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8")) or {}, path
+    except yaml.YAMLError as exc:
+        _yaml_help(path, exc)
+        return None
+
+
+def _yaml_help(path: Path, exc: Exception) -> None:
+    """A short, readable message instead of a YAML traceback."""
+    mark = getattr(exc, "problem_mark", None)
+    where = f" at line {mark.line + 1}, column {mark.column + 1}" if mark else ""
+    print(f"\n{path} has a formatting mistake{where}:", file=sys.stderr)
+    if mark:
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for n in range(max(0, mark.line - 2), min(len(lines), mark.line + 2)):
+            print(f"  {'>' if n == mark.line else ' '} {n + 1:4} | {lines[n]}", file=sys.stderr)
+    print(f"  ({getattr(exc, 'problem', exc)})\n", file=sys.stderr)
+    print("Common fixes:\n"
+          "  - Text over several lines needs '|' and indented lines:\n"
+          "        description: |\n"
+          "          - Built a Playwright framework\n"
+          "          - Led CI/CD for 5 teams\n"
+          "  - Text containing ': ' or starting with - [ { * & ! # needs quotes: \"Notice: 90 days\"\n"
+          "  - Use spaces, not tabs, and keep items of a list at the same indentation.", file=sys.stderr)
 
 
 def _file(folder: Path, value: str | None) -> Path | None:
