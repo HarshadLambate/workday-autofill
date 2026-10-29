@@ -1,0 +1,5 @@
+# Workday career sites to search, one per line (wdautofill search).
+# Find one: open a company's careers page; if the address contains
+# myworkdayjobs.com, copy it up to the site name, e.g.
+# https://acme.wd5.myworkdayjobs.com/en-US/External
+# Any job link from that site also works.

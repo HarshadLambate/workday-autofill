@@ -1,0 +1,11 @@
+name: Feature or new site
+description: Ask for a new job site or a feature
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+      description: For a new site, include a public job link that uses it.
+    validations:
+      required: true

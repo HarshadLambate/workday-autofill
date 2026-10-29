@@ -1,0 +1,14 @@
+# Your confirmed answers. wdautofill appends here whenever you answer a new question.
+#
+#   scope: "*" = any employer, or a country code (US, UK, IN ...) for the job's country
+#   sensitive: true = legal / identity questions; these are NEVER guessed by the AI
+#              and only matched exactly (a similar wording is offered as a suggestion).
+#
+# Example (replace with YOUR real answer before using):
+#
+# answers:
+#   - question: Will you now or in the future require sponsorship?
+#     answer: "<your real answer>"
+#     scope: US
+#     sensitive: true
+answers: []

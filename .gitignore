@@ -1,0 +1,21 @@
+# personal data - never commit
+personal/
+cover_letters/
+debug/
+*.backup*.yaml
+profile.yaml
+answers.yaml
+instructions.md
+jobs.txt
+resume*.pdf
+resume*.docx
+applications.jsonl
+.wdautofill/
+
+# python
+__pycache__/
+*.egg-info/
+.venv/
+dist/
+build/
+.pytest_cache/

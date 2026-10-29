@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "workday-autofill"
+version = "0.4.0"
+description = "Free, open-source job application autofill for Workday, Lever and Greenhouse. Answer each question once; you review and click Submit."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Harshad Lambate" }]
+requires-python = ">=3.10"
+dependencies = ["playwright>=1.44", "pyyaml>=6"]
+keywords = ["workday", "job-application", "autofill", "job-search", "lever", "greenhouse",
+            "playwright", "automation", "resume", "cover-letter"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business",
+]
+
+[project.urls]
+Homepage = "https://github.com/HarshadLambate/workday-autofill"
+Issues = "https://github.com/HarshadLambate/workday-autofill/issues"
+Funding = "https://buymeacoffee.com/lambate05p"
+
+[project.optional-dependencies]
+anthropic = ["anthropic>=0.40"]
+openai = ["openai>=1.40"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+wdautofill = "wdautofill.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

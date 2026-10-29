@@ -1,0 +1,35 @@
+name: A site isn't filling correctly
+description: A Workday / Lever / Greenhouse page that stops, skips fields or fills them wrong
+labels: [site-support]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Job link
+      description: The public job posting (not a page that needs your login)
+      placeholder: https://company.wd5.myworkdayjobs.com/...
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Which page (e.g. "My Experience"), which field, what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: terminal
+    attributes:
+      label: Terminal output
+      description: The lines for this job. Remove anything personal first.
+      render: text
+  - type: textarea
+    id: debug
+    attributes:
+      label: Debug files
+      description: Attach the files for this job from personal/debug/ (field names only, no answers - but check before attaching).
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `wdautofill --version`
