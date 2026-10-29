@@ -517,7 +517,7 @@ class WorkdayFiller:
             await self._fill_row_field(c, kind, label, row)
             return
         if await self._has_value(c, kind) and not self.overwrite:
-            # Your profile wins over what the resume reader typed (e.g. "ASHA" -> "Asha").
+            # Your profile wins over what the resume reader typed (e.g. "JOHN" -> "John").
             mine = profile_map.lookup(label, self.resolver.profile) if kind == "text" else None
             if not mine or (await c.locator(ANY_INPUT).first.input_value()).strip() == mine:
                 return

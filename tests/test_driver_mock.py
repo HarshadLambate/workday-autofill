@@ -282,7 +282,7 @@ def test_real_workday_signin_shape(tmp_path):
 EXPERIENCE_HTML = """
 <html><body>
 <div id="p1">
-  <div data-automation-id="formField-legalName--firstName"><label>Given Name(s)*</label><input type="text" value="ASHA"></div>
+  <div data-automation-id="formField-legalName--firstName"><label>Given Name(s)*</label><input type="text" value="JOHN"></div>
   <div data-automation-id="formField-source"><label>How Did You Hear About Us?*</label>
     <div data-automation-id="multiselectInputContainer">
       <input data-automation-id="searchBox" type="text" onkeydown="if(event.key==='Enter') search(this)"></div></div>
@@ -349,7 +349,7 @@ def test_my_experience_rows_rules_and_name_case(tmp_path):
     page_file = tmp_path / "exp.html"
     page_file.write_text(EXPERIENCE_HTML, encoding="utf-8")
     profile = {
-        "personal": {"first_name": "Asha"},
+        "personal": {"first_name": "John"},
         "rules": [
             {"question": "how did you hear", "answer": ["Company Website", "LinkedIn"]},
             {"question": r"(ever|previously|formerly)\b.*\b(worked for|work for|employed (by|with|at)|been employed|employee of|worked at|contingent worker|contractor for)", "answer": "No"},
@@ -397,7 +397,7 @@ def test_my_experience_rows_rules_and_name_case(tmp_path):
             return out
 
     o = asyncio.run(main())
-    assert o["name"] == "Asha"                       # profile beats the resume reader's "ASHA"
+    assert o["name"] == "John"                       # profile beats the resume reader's "JOHN"
     assert o["source"] == ["Company Website"]           # rule, first answer that exists
     assert o["prev_no"]                                  # "ever worked for <company>" -> No
     assert o["titles"] == ["Consultant - Testing", "Associate Technical Specialist"]  # row added
@@ -407,7 +407,7 @@ def test_my_experience_rows_rules_and_name_case(tmp_path):
     assert o["ssc_gone"]                                 # extra education row removed
     assert o["next"] == "Save and Continue"              # found by text, no automation id
     assert asked == []                                   # nothing needed asking
-    assert "formField-jobTitle" in o["dump"] and "ASHA" not in o["dump"]  # structure only, no values
+    assert "formField-jobTitle" in o["dump"] and "JOHN" not in o["dump"]  # structure only, no values
 
 
 LOADING_HTML = """
@@ -440,7 +440,7 @@ def test_waits_for_workday_loading_screen(tmp_path):
 
     page_file = tmp_path / "loading.html"
     page_file.write_text(LOADING_HTML, encoding="utf-8")
-    resolver = Resolver({"personal": {"first_name": "Asha", "city": "Pune"}}, AnswerBank(tmp_path / "a.yaml"),
+    resolver = Resolver({"personal": {"first_name": "John", "city": "Pune"}}, AnswerBank(tmp_path / "a.yaml"),
                         prompter=TerminalPrompter())
 
     async def main():
@@ -459,5 +459,5 @@ def test_waits_for_workday_loading_screen(tmp_path):
 
     status, first, city, submitted = asyncio.run(main())
     assert status == "ready_for_review"
-    assert (first, city) == ("Asha", "Pune")
+    assert (first, city) == ("John", "Pune")
     assert not submitted

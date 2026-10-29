@@ -62,8 +62,8 @@ LEVER_HTML = """
 window.submitted = false;
 function parsed() {   // Lever reads the resume and pre-fills (in capitals, like a CV header)
   setTimeout(() => {
-    document.querySelector('[name=name]').value = 'ASHA PATIL';
-    document.querySelector('[name=email]').value = 'asha.patil@example.com';
+    document.querySelector('[name=name]').value = 'JOHN DOE';
+    document.querySelector('[name=email]').value = 'john.doe@example.com';
   }, 500);
 }
 function suggest(input) {
@@ -79,9 +79,9 @@ function suggest(input) {
 """
 
 PROFILE = {
-    "personal": {"first_name": "Asha", "last_name": "Patil", "email": "asha.patil@example.com",
+    "personal": {"first_name": "John", "last_name": "Doe", "email": "john.doe@example.com",
                  "phone": "9000000000", "city": "Pune", "state": "Maharashtra", "country": "India"},
-    "links": {"linkedin": "https://www.linkedin.com/in/asha-patil-demo/"},
+    "links": {"linkedin": "https://www.linkedin.com/in/john-doe-demo/"},
     "experience": [{"company": "Globex Payments"}],
     "rules": [
         {"question": "notice period", "answer": ["90 days", "3 months"]},
@@ -97,7 +97,7 @@ def test_lever_form(tmp_path):
 
     page_file = tmp_path / "lever.html"
     page_file.write_text(LEVER_HTML, encoding="utf-8")
-    resume = tmp_path / "Asha_Patil_CV.pdf"
+    resume = tmp_path / "John_Doe_CV.pdf"
     resume.write_bytes(b"%PDF-1.4")
     asked = []
 
@@ -138,12 +138,12 @@ def test_lever_form(tmp_path):
 
     o = asyncio.run(main())
     assert o["status"] == "ready_for_review" and o["submitted"] is False   # never submits
-    assert o["resume"] == "Asha_Patil_CV.pdf"
-    assert o["name"] == "Asha Patil"                # "ASHA PATIL" from the resume reader replaced
-    assert (o["email"], o["phone"]) == ("asha.patil@example.com", "9000000000")
+    assert o["resume"] == "John_Doe_CV.pdf"
+    assert o["name"] == "John Doe"                # "JOHN DOE" from the resume reader replaced
+    assert (o["email"], o["phone"]) == ("john.doe@example.com", "9000000000")
     assert o["selected"] == "Pune, Maharashtra, India"   # picked from the location suggestions
     assert o["org"] == "Globex Payments"       # current company = newest job in profile
-    assert o["linkedin"].startswith("https://www.linkedin.com/in/asha-patil-demo")
+    assert o["linkedin"].startswith("https://www.linkedin.com/in/john-doe-demo")
     assert o["twitter"] == ""                            # optional + unknown: left empty, not asked
     assert o["internet"] and o["notice"] and o["authorized"]
     assert o["ack"] == ""                                # attestation: yours (skipped when asked)
@@ -184,7 +184,7 @@ def test_generic_form(tmp_path):
 
     page_file = tmp_path / "gh.html"
     page_file.write_text(GENERIC_HTML, encoding="utf-8")
-    profile = {"personal": {"first_name": "Asha", "last_name": "Patil"},
+    profile = {"personal": {"first_name": "John", "last_name": "Doe"},
                "links": {"website": "https://example.dev"},
                "rules": [{"question": r"\bgender\b", "answer": ["Male"]},
                          {"question": "sponsor", "answer": "No", "countries": ["IN"]}]}
@@ -213,6 +213,6 @@ def test_generic_form(tmp_path):
     status, company, country, first, last, gender, no_spons, honeypot, submitted = asyncio.run(main())
     assert status == "ready_for_review" and not submitted
     assert (company, country) == ("Acme", "IN")  # JSON-LD "Acme Corp", legal suffix dropped
-    assert (first, last, gender, no_spons) == ("Asha", "Patil", "Male", True)
+    assert (first, last, gender, no_spons) == ("John", "Doe", "Male", True)
     assert honeypot == ""                                  # bot trap left alone
     assert asked == []                                     # optional essay question not forced on you

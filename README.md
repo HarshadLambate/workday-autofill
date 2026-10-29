@@ -97,7 +97,7 @@ For every field, in this order:
 
 1. **Profile** - name, email, phone, address, links, current company, work history,
    education. Your profile always wins, even over what a site's resume reader typed
-   (`ASHA` -> `Asha`).
+   (`JOHN` -> `John`).
 2. **Your rules** - your fixed answer for every question whose wording matches, at every
    company: *How did you hear about us -> LinkedIn*, *Have you ever worked for
    &lt;company&gt; -> No*, *Notice period -> 90 days*, *Sponsorship -> No in India, Yes

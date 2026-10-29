@@ -36,10 +36,10 @@ from wdautofill.workday import STATUS_PAGE, WorkdayFiller  # noqa: E402
 OUT = ROOT / "docs" / "images"
 
 DEMO = {
-    "personal": {"first_name": "Asha", "last_name": "Patil", "email": "asha.patil@example.com",
+    "personal": {"first_name": "John", "last_name": "Doe", "email": "john.doe@example.com",
                  "phone": "9000000000", "phone_country_code": "India (+91)", "city": "Pune",
                  "state": "Maharashtra", "country": "India"},
-    "links": {"linkedin": "https://www.linkedin.com/in/asha-patil-demo/"},
+    "links": {"linkedin": "https://www.linkedin.com/in/john-doe-demo/"},
     "experience": [{"company": "Globex Payments"}],
     "rules": [
         {"question": "how did you hear", "answer": ["LinkedIn", "Company Website"]},
@@ -116,7 +116,7 @@ def typing_user():
 async def apply_run(browser, tmp: Path) -> tuple[str, object]:
     (tmp / "wd.html").write_text(wd_mock.HTML, encoding="utf-8")
     (tmp / "lever.html").write_text(form_mock.LEVER_HTML, encoding="utf-8")
-    resume = tmp / "Asha_Patil_CV.pdf"
+    resume = tmp / "John_Doe_CV.pdf"
     resume.write_bytes(b"%PDF-1.4 demo")
     resolver = Resolver(DEMO, AnswerBank(tmp / "answers.yaml"))
     resolver.bank.add("Are you legally authorized to work in the country of this job?", "Yes", "IN", True)
@@ -127,7 +127,7 @@ async def apply_run(browser, tmp: Path) -> tuple[str, object]:
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf), typing_user():
         print("$ wdautofill apply --dir personal")
-        print("Resume:       personal/Asha_Patil_CV.pdf")
+        print("Resume:       personal/John_Doe_CV.pdf")
         print("2 job(s) queued; up to 5 windows open at a time.\n")
         f1 = WorkdayFiller(p1, resolver, j1, resume_path=resume, log_path=tmp / "log.jsonl")
         f2 = FormFiller(p2, resolver, j2, resume_path=resume, log_path=tmp / "log.jsonl")
