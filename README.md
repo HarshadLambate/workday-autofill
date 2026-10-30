@@ -8,12 +8,18 @@ profile, uploads your resume and a cover letter written for that company, and as
 you each new question **only once - ever**. Then it stops so **you** review and click
 Submit.
 
+[![PyPI](https://img.shields.io/pypi/v/workday-autofill.svg)](https://pypi.org/project/workday-autofill/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Tests](https://github.com/HarshadLambate/workday-autofill/actions/workflows/tests.yml/badge.svg)](https://github.com/HarshadLambate/workday-autofill/actions/workflows/tests.yml)
 [![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-%E2%98%95-FFDD00?logo=buymeacoffee&logoColor=000)](https://buymeacoffee.com/lambate05p)
 
-![A Lever application filled from the profile and saved rules - only a new question is asked](docs/images/hero.png)
+![30-second demo: find jobs, the form fills itself, you review and submit](docs/images/demo.gif)
+
+```bash
+pip install workday-autofill
+wdautofill setup
+```
 
 ## Why
 
@@ -54,22 +60,18 @@ break:
 
 ![Status window: each job's progress](docs/images/status-window.png)
 
-*Screenshots are generated from demo pages and a demo applicant by
+*The GIF and screenshots are generated from demo pages and a demo applicant by
+[`docs/make_demo_gif.py`](docs/make_demo_gif.py) and
 [`docs/make_screenshots.py`](docs/make_screenshots.py) - the real tool, fake data.*
 
 ## Quick start
 
-You need Python 3.10+ ([python.org](https://www.python.org/downloads/)).
+You need **Python 3.10+** ([python.org](https://www.python.org/downloads/) - on Windows tick
+**"Add python.exe to PATH"** in the installer).
 
 ```bash
-git clone https://github.com/HarshadLambate/workday-autofill
-cd workday-autofill
-python -m venv .venv
-# Windows: .venv\Scripts\activate      macOS/Linux: source .venv/bin/activate
-pip install -e ".[openai]"     # the extra is only needed for AI; plain `pip install -e .` works too
-playwright install chromium
-
-wdautofill init --dir personal      # creates your private files (git-ignored)
+pip install workday-autofill        # or: pipx install workday-autofill
+wdautofill setup                    # installs the browser and creates your personal/ folder
 ```
 
 Then, in the `personal` folder:
@@ -87,6 +89,23 @@ wdautofill apply  --dir personal    # fill every job in jobs.txt
 The first time on each company's Workday site you create an account (the tool types
 your email and password; ticking the terms box and the email code are yours).
 After that it signs in by itself.
+
+Want AI for the questions your rules don't cover? `pip install "workday-autofill[openai]"`
+and see [AI](#ai-optional---free-options-work). Curious how it all works?
+Read **[How it works](docs/HOW_IT_WORKS.md)**.
+
+<details><summary>Install from source (to change the code)</summary>
+
+```bash
+git clone https://github.com/HarshadLambate/workday-autofill
+cd workday-autofill
+python -m venv .venv
+# Windows: .venv\Scripts\activate      macOS/Linux: source .venv/bin/activate
+pip install -e ".[dev,openai]"
+wdautofill setup
+pytest
+```
+</details>
 
 ## How answers are decided
 
@@ -200,7 +219,7 @@ Bug reports with debug files, support for new sites, and better rules are all we
 see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ```bash
-pip install -e ".[dev]" && playwright install chromium
+pip install -e ".[dev]" && wdautofill setup
 pytest
 ```
 

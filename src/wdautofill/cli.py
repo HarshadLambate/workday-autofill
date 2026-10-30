@@ -125,6 +125,24 @@ def _init(args: argparse.Namespace) -> int:
     return 0
 
 
+def _setup(args: argparse.Namespace) -> int:
+    from .browser import chromium_installed, install_chromium
+
+    if chromium_installed() and not args.force:
+        print("Browser: ready (Chromium already installed).")
+    elif not install_chromium():
+        return 1
+    else:
+        print("Browser: installed.")
+    folder = Path(args.dir)
+    if not (folder / "profile.yaml").exists():
+        print()
+        return _init(argparse.Namespace(dir=args.dir))
+    print(f"Profile: {folder / 'profile.yaml'} found. You're ready:\n"
+          f"  wdautofill search --dir {args.dir}\n  wdautofill apply  --dir {args.dir}")
+    return 0
+
+
 def _answers(args: argparse.Namespace) -> int:
     bank = AnswerBank(Path(args.dir) / "answers.yaml")
     if not bank.entries:
@@ -200,7 +218,11 @@ def _apply(args: argparse.Namespace) -> int:
         suggest_sensitive=bool(cfg.get("suggest_sensitive", True)),
     )
 
+    from .browser import ensure_browser
     from .workday import run_jobs  # imported lazily so tests don't need a browser
+
+    if not ensure_browser(args.channel):
+        return 1
 
     print(f"\n{len(jobs)} job(s) queued; {args.parallel} filling at a time, up to {args.max_open} windows open.")
     print(f"Add more links to {jobs_file.name} at any time - they join the queue.\n")
@@ -244,17 +266,15 @@ def _search(args: argparse.Namespace) -> int:
     if not keywords:
         print("Give keywords: --keywords \"QA, SDET\" or search.keywords in profile.yaml", file=sys.stderr)
         return 1
-    if not companies or not companies.exists():
-        print(f"Companies list not found: {companies}", file=sys.stderr)
-        return 1
-    sites = read_sites(companies)
+    companies = companies or folder / "companies.txt"
+    sites = read_sites(companies) if companies.exists() else []
     if not sites:
-        print(f"{companies} has no career sites yet - nothing to search.\n"
-              "Add one Workday career-site address per line, e.g.\n"
-              "  https://mastercard.wd1.myworkdayjobs.com/CorporateCareers\n"
-              "Find more: open a company's careers page; if the address contains myworkdayjobs.com, paste it.\n"
-              "(LinkedIn is not searched - its terms forbid automated searching.)", file=sys.stderr)
-        return 1
+        # Empty list (e.g. made by an older version): use the built-in starter list
+        from .search import parse_site
+        from .templates import COMPANIES
+        sites = [x for x in (parse_site(l) for l in COMPANIES.splitlines() if l.startswith("http")) if x]
+        print(f"{companies.name} has no career sites - using the built-in starter list ({len(sites)} sites).\n"
+              f"To choose your own: copy examples/companies.example.txt to {companies} and edit it.")
     print(f"Searching {len(sites)} Workday career sites for {keywords} in '{location or 'any location'}', "
           f"posted in the last {days} days...")
     failed = []
@@ -340,6 +360,11 @@ def main(argv: list[str] | None = None) -> int:
     p_init = sub.add_parser("init", help="create profile.yaml, answers, instructions, jobs and companies files")
     p_init.add_argument("--dir", default=".")
     p_init.set_defaults(func=_init)
+
+    p_setup = sub.add_parser("setup", help="one-time setup: install the browser and create your files")
+    p_setup.add_argument("--dir", default="personal", help="folder for your files (default: personal)")
+    p_setup.add_argument("--force", action="store_true", help="reinstall the browser")
+    p_setup.set_defaults(func=_setup)
 
     p_ans = sub.add_parser("answers", help="list saved answers")
     p_ans.add_argument("--dir", default=".")

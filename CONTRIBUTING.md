@@ -12,7 +12,7 @@ buttons (never your answers). Check them before attaching anyway.
 
 ```bash
 pip install -e ".[dev]"
-playwright install chromium
+wdautofill setup      # installs the browser
 pytest
 ```
 
