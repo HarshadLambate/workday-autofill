@@ -143,14 +143,21 @@ paste that link into `jobs.txt`.
 - Links come from `jobs.txt`, the command line, or pasted into the terminal. Add more to
   `jobs.txt` while it runs - they join the queue. Jobs filled before are skipped
   (`--again` redoes them).
-- One window per job, at most `--parallel 5` open. **Review, click Submit, close the
-  window** - the next job opens.
+- **5 applications fill at the same time** (change with `--parallel`). A finished
+  window waits for your review without holding anything up - the next job starts
+  right away. **Review, click Submit, close the window.** At most 15 job windows are
+  open at once (`--max-open`), so 100 links don't open 100 windows.
+
+  ```bash
+  wdautofill apply --dir personal --parallel 8      # 8 at a time on a fast PC
+  wdautofill apply --dir personal --parallel 2      # gentler on a slow PC / connection
+  ```
 - Resume goes to every Resume/CV box; your cover letter template becomes
   `cover_letters/<You>_Cover_Letter_<Company>.docx` and goes to Cover Letter boxes.
 - New questions come to the terminal one at a time, tagged with the job. If several
   windows need the same new question, you're asked once.
 
-Flags: `--parallel N`, `--country IN`, `--resume FILE`, `--cover-letter FILE`,
+Flags: `--parallel N`, `--max-open N`, `--country IN`, `--resume FILE`, `--cover-letter FILE`,
 `--no-auto-account`, `--overwrite`, `--no-resume-autofill`, `--channel chrome`,
 `--again`. `wdautofill answers --dir personal` lists your saved answers.
 

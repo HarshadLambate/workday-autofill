@@ -5,6 +5,7 @@ import asyncio
 import getpass
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -29,6 +30,22 @@ def _load_profile(folder: Path) -> tuple[dict, Path] | None:
     except yaml.YAMLError as exc:
         _yaml_help(path, exc)
         return None
+
+
+def _profile_problems(profile: dict) -> list[str]:
+    """Easy-to-make mistakes that would make fields fail later."""
+    out = []
+    for section, fmt, pattern in (("experience", "MM/YYYY (e.g. 08/2025)", r"^\d{1,2}/\d{4}$"),
+                                  ("education", "YYYY or MM/YYYY (e.g. 2014)", r"^(\d{1,2}/)?\d{4}$")):
+        for i, e in enumerate(profile.get(section) or [], 1):
+            for key in ("from", "to"):
+                v = str((e or {}).get(key, "") or "").strip()
+                if v and v.lower() not in {"current", "present", "now", "today"} and not re.match(pattern, v):
+                    out.append(f"{section} #{i} {key}: '{v}' - use {fmt}")
+    edu = profile.get("education") or []
+    if edu and not any(k in (edu[0] or {}) for k in ("school", "college", "university", "institution")):
+        out.append("education #1 has no 'school:' - add your university/college name")
+    return out
 
 
 def _yaml_help(path: Path, exc: Exception) -> None:
@@ -125,6 +142,9 @@ def _apply(args: argparse.Namespace) -> int:
         return 1
     profile, _ = loaded
 
+    for problem in _profile_problems(profile):
+        print("Check profile.yaml:", problem)
+
     jobs_file = _file(folder, args.file) or folder / "jobs.txt"
     if not args.urls and not read_job_lines(jobs_file.read_text(encoding="utf-8") if jobs_file.exists() else ""):
         _paste_links(jobs_file)
@@ -182,7 +202,7 @@ def _apply(args: argparse.Namespace) -> int:
 
     from .workday import run_jobs  # imported lazily so tests don't need a browser
 
-    print(f"\n{len(jobs)} job(s) queued; up to {args.parallel} windows open at a time.")
+    print(f"\n{len(jobs)} job(s) queued; {args.parallel} filling at a time, up to {args.max_open} windows open.")
     print(f"Add more links to {jobs_file.name} at any time - they join the queue.\n")
     asyncio.run(
         run_jobs(
@@ -191,6 +211,7 @@ def _apply(args: argparse.Namespace) -> int:
             browser_dir=Path(args.browser_dir).expanduser(),
             channel=args.channel,
             parallel=args.parallel,
+            max_open=args.max_open,
             watch_file=jobs_file,
             skip_urls=set(done),
             resume_path=resume_path,
@@ -227,6 +248,13 @@ def _search(args: argparse.Namespace) -> int:
         print(f"Companies list not found: {companies}", file=sys.stderr)
         return 1
     sites = read_sites(companies)
+    if not sites:
+        print(f"{companies} has no career sites yet - nothing to search.\n"
+              "Add one Workday career-site address per line, e.g.\n"
+              "  https://mastercard.wd1.myworkdayjobs.com/CorporateCareers\n"
+              "Find more: open a company's careers page; if the address contains myworkdayjobs.com, paste it.\n"
+              "(LinkedIn is not searched - its terms forbid automated searching.)", file=sys.stderr)
+        return 1
     print(f"Searching {len(sites)} Workday career sites for {keywords} in '{location or 'any location'}', "
           f"posted in the last {days} days...")
     failed = []
@@ -279,7 +307,10 @@ def _add_apply_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("urls", nargs="*", help="Workday job URLs (optional - default: jobs.txt)")
     p.add_argument("--dir", default=".", help="folder with profile.yaml, answers, jobs.txt (default: here)")
     p.add_argument("--file", help="job list file (default: jobs.txt in --dir)")
-    p.add_argument("--parallel", type=int, default=5, help="job windows open at once (default 5)")
+    p.add_argument("--parallel", type=int, default=5,
+                   help="applications filling at the same time (default 5)")
+    p.add_argument("--max-open", type=int, default=15,
+                   help="job windows open in total, incl. finished ones waiting for you (default 15)")
     p.add_argument("--country", help="country of ALL these jobs (US, UK, IN...). Default: read from each posting")
     p.add_argument("--again", action="store_true", help="also redo jobs filled before")
     p.add_argument("--resume", help="resume file (default: resume_path in profile)")

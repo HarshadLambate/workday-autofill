@@ -461,3 +461,43 @@ def test_waits_for_workday_loading_screen(tmp_path):
     assert status == "ready_for_review"
     assert (first, city) == ("John", "Pune")
     assert not submitted
+
+
+def test_finished_windows_waiting_for_you_do_not_block_new_jobs(tmp_path, monkeypatch):
+    """--parallel counts jobs being FILLED; filled windows waiting for review don't hold a slot."""
+    from wdautofill import workday
+
+    jobs_file = tmp_path / "jobs.txt"
+    jobs_file.write_text("".join(f"https://c{i}.wd1.myworkdayjobs.com/x/job/{i}\n" for i in range(1, 5)))
+    pages, started = [], []
+
+    async def fake_run(self, url=None):
+        started.append(self.job.url)
+        pages.append(self.page)
+        await self.page.set_content("<p>filled - waiting for review</p>")
+        return "ready_for_review"  # window stays open, like a real finished application
+
+    async def reviewer():
+        while len(started) < 4:  # all 4 must start although nobody closed a window yet
+            await asyncio.sleep(0.1)
+        for p in pages:
+            await p.close()
+
+    monkeypatch.setattr(workday.WorkdayFiller, "run", fake_run)
+    from wdautofill.jobs import parse_jobs
+
+    async def main():
+        rev = asyncio.create_task(reviewer())
+        status = await asyncio.wait_for(workday.run_jobs(
+            parse_jobs([], str(jobs_file), None), Resolver({}, AnswerBank(tmp_path / "a.yaml")),
+            browser_dir=tmp_path / "browser", parallel=2, max_open=15, headless=True), timeout=60)
+        await rev
+        return status
+
+    try:
+        status = asyncio.run(main())
+    except Exception as exc:
+        if "Executable doesn't exist" in str(exc):
+            pytest.skip("Playwright browser not installed")
+        raise
+    assert len(started) == 4 and set(status.values()) == {"closed"}

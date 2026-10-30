@@ -114,6 +114,10 @@ def make_llm(
     provider = (provider or "none").lower()
     if provider in {"none", ""}:
         return None
+    if not (model or "").strip():
+        print(f"Note: llm.provider is '{provider}' but llm.model is empty - AI is off. "
+              "Set a model (see the examples in profile.yaml) or use provider: none.")
+        return None
     if provider == "anthropic":
         return AnthropicLLM(model)
     if provider == "openai":

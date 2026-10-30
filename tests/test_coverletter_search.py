@@ -95,3 +95,21 @@ def test_search_filters_scores_and_ranks():
     assert top.company == "Acme" and top.url.endswith("/Ext/job/Pune/Senior-SDET_R1")
     assert top.matched == ["Playwright", "C#", "Azure DevOps"] and top.score > posts[1].score
     assert "asks 15+ yrs" in posts[1].notes
+
+
+def test_search_location_city_and_years_text():
+    """'Pune, India' must match postings listed as 'Pune' / 'IND Pune'; years may be '9+'."""
+    site = Site("acme.wd5.myworkdayjobs.com", "acme", "Ext")
+    listing = [{"title": "SDET", "externalPath": "/job/a/SDET_R1", "locationsText": "IND Pune", "postedOn": "Posted Today"},
+               {"title": "SDET", "externalPath": "/job/b/SDET_R2", "locationsText": "Austin, TX", "postedOn": "Posted Today"}]
+
+    def http(url, body=None):
+        if body is not None:
+            return {"total": 2, "jobPostings": listing} if body["offset"] == 0 else {"jobPostings": []}
+        loc = "IND Pune" if "R1" in url else "Austin, TX"
+        return {"jobPostingInfo": {"location": loc, "jobDescription": "Selenium and C#. 15+ years"}}
+
+    posts = search([site], ["SDET"], "Pune, India", ["Selenium", "C#"], years="9+", max_days=30,
+                   http=http, log=lambda *a: None)
+    assert [p.path for p in posts] == ["/job/a/SDET_R1"]
+    assert "asks 15+ yrs" in posts[0].notes

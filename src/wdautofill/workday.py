@@ -568,7 +568,18 @@ class WorkdayFiller:
 
     def _row_entries(self, section: str) -> list[dict] | None:
         entries = self.resolver.profile.get(section)
-        return entries if isinstance(entries, list) else None
+        if not isinstance(entries, list):
+            return None
+        out = []
+        for e in entries:
+            e = dict(e or {})
+            if section == "education" and "school" not in e:  # accept college / university / institution
+                for alias in ("college", "university", "institution"):
+                    if alias in e:
+                        e["school"] = e[alias]
+                        break
+            out.append(e)
+        return out
 
     async def _sync_rows(self) -> None:
         """Make the number of Work Experience / Education blocks match your profile."""
@@ -962,7 +973,7 @@ STATUS_PAGE = """<html><head><title>wdautofill - keep this window open</title></
 <body style="font-family:system-ui,sans-serif;margin:24px;color:#222">
 <h2>wdautofill is running</h2>
 <p>Keep <b>this</b> window open. Each job opens in its own window and stops before Submit.<br>
-<b>Review it, click Submit, then close that window</b> - the next job in the queue opens.<br>
+Several jobs fill at once; finished ones wait for you. <b>Review, click Submit, then close that window.</b><br>
 You can keep adding links to your jobs file; they join the queue.</p>
 <table cellpadding="6" style="border-collapse:collapse">{rows}</table></body></html>"""
 
@@ -973,15 +984,19 @@ async def run_jobs(
     browser_dir: Path,
     channel: str | None = None,
     parallel: int = 5,
+    max_open: int = 15,
     watch_file: Path | None = None,
     skip_urls: set[str] | None = None,
     watch_interval: float = 5.0,
     headless: bool = False,
     **kwargs,
 ) -> dict[str, str]:
-    """Unlimited queue. At most `parallel` job windows are open at once; when you
-    close a window (after submitting), the next job starts. New lines added to
-    `watch_file` while running are queued too."""
+    """Unlimited queue. `parallel` applications are being FILLED at any moment; a
+    window that is finished and waiting for you does not hold up the next job.
+    `max_open` caps how many job windows can be open in total (filled ones wait for
+    you to submit and close them). New lines added to `watch_file` are queued too."""
+    max_open = max(max_open, parallel)
+    filling = asyncio.Semaphore(max(1, parallel))
     browser_dir.mkdir(parents=True, exist_ok=True)
     skip_urls = set(skip_urls or ())
     queue: asyncio.Queue = asyncio.Queue()
@@ -1026,7 +1041,10 @@ async def run_jobs(
                     queue.task_done()
                     return
                 page = None
+                slot_held = False
                 try:
+                    await filling.acquire()  # at most `parallel` jobs filling at once
+                    slot_held = True
                     page = await ctx.new_page()
                     status[job.url] = "filling"
                     await refresh()
@@ -1042,6 +1060,8 @@ async def run_jobs(
                         result = "error - finish by hand"
                     titles[job.url] = f"{job.company + ': ' if job.company else ''}{job.title or job.url}"
                     status[job.url] = f"{result} - waiting for you to submit and close the window"
+                    filling.release()  # done filling: the next job can start now
+                    slot_held = False
                     await refresh()
                     if not page.is_closed():  # you close it after submitting
                         await page.wait_for_event("close", timeout=0)
@@ -1050,6 +1070,8 @@ async def run_jobs(
                 except Exception as exc:  # browser closed, etc.
                     status[job.url] = f"error: {type(exc).__name__}"
                 finally:
+                    if slot_held:
+                        filling.release()
                     await refresh()
                     queue.task_done()
 
@@ -1071,7 +1093,8 @@ async def run_jobs(
                 await asyncio.sleep(watch_interval)
 
         await refresh()
-        workers = [asyncio.create_task(worker()) for _ in range(max(1, parallel))]
+        # one worker per window that may be open; the semaphore limits how many fill at once
+        workers = [asyncio.create_task(worker()) for _ in range(max(1, max_open))]
         watch_task = asyncio.create_task(watcher())
         try:
             while True:

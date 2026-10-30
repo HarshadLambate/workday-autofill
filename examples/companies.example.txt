@@ -1,5 +1,22 @@
 # Workday career sites to search, one per line (wdautofill search).
-# Find one: open a company's careers page; if the address contains
-# myworkdayjobs.com, copy it up to the site name, e.g.
-# https://acme.wd5.myworkdayjobs.com/en-US/External
-# Any job link from that site also works.
+# Find more: open a company's careers page; if the address contains
+# myworkdayjobs.com, paste it here (any job link from that site also works).
+# Starter list: companies that had QA/SDET jobs in India on Workday (October 2026).
+# Delete the ones you don't want, add your own.
+
+https://mastercard.wd1.myworkdayjobs.com/CorporateCareers
+https://worldpay.wd5.myworkdayjobs.com/Worldpay_External_Careers_Site
+https://fiserv.wd5.myworkdayjobs.com/EXT
+https://tsys.wd1.myworkdayjobs.com/en-US/TSYS
+https://statestreet.wd1.myworkdayjobs.com/en-US/Global
+https://lplfinancial.wd1.myworkdayjobs.com/en-US/India_Ext
+https://finastra.wd3.myworkdayjobs.com/en-US/FINC
+https://autodesk.wd1.myworkdayjobs.com/en-US/Ext
+https://qualys.wd5.myworkdayjobs.com/en-US/Careers
+https://rockwellautomation.wd1.myworkdayjobs.com/External_Rockwell_Automation
+https://wk.wd3.myworkdayjobs.com/en-US/External
+https://automationanywhere.wd5.myworkdayjobs.com/en-US/AutomationAnywhereJobs
+https://prodege.wd108.myworkdayjobs.com/Prodege_Careers
+https://accenture.wd103.myworkdayjobs.com/en-US/AccentureCareers
+https://jadeglobal.wd5.myworkdayjobs.com/Jade_Careers
+https://dentsuaegis.wd3.myworkdayjobs.com/en-US/DAN_GLOBAL

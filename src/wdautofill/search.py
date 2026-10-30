@@ -141,6 +141,12 @@ def _has(text: str, term: str) -> bool:
     return re.search(r"(?<![a-z0-9])" + re.escape(term.lower()) + r"(?![a-z0-9])", text.lower()) is not None
 
 
+def parse_years(value) -> float | None:
+    """9, "9", "9+", "9 years" -> 9.0"""
+    m = re.search(r"\d+(\.\d+)?", str(value)) if value is not None else None
+    return float(m.group(0)) if m else None
+
+
 def score(post: Posting, keywords: list[str], skills: list[str], years: float | None) -> None:
     title_hit = any(_has(post.title, k) for k in keywords)
     post.matched = [s for s in skills if _has(post.description + " " + post.title, s)]
@@ -164,7 +170,9 @@ def search(
     exclude: list[str] | None = None, http=_http, log=print,
 ) -> list[Posting]:
     found: dict[str, Posting] = {}  # keyed by site + path (stable before details load)
-    loc = location.lower().strip()
+    years = parse_years(years)
+    # "Pune, India" -> match on "pune" (Workday lists jobs as "Pune", "IND Pune", "Pune, MH"...)
+    loc = re.split(r"[,/|]", location.lower())[0].strip()
     for site in sites:
         n_before = len(found)
         try:
