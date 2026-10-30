@@ -36,9 +36,6 @@ break:
 - **A cover letter per company.** Write one template; every job gets its own copy with
   the company name, job title and location filled in.
 
-I built this during my own job search in 2026, after typing the same details into
-one Workday portal too many.
-
 ## What it looks like
 
 **Find and shortlist jobs** - scored against your skills, flagged when the experience asked doesn't fit:
